@@ -4,7 +4,7 @@ resolver = "2"
 
 [package]
 name = "lake"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 authors = ["Vladislav Feuerbach <feuerbachvladislav@gmail.com>"]
 description = "Lake is a high-octane memory pool with direct access, checkpoints, rollback, and zero-allocation droplets. No GC. No overhead. Just you and the bytes — total control. Allocate like a cyber-samurai."

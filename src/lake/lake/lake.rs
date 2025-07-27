@@ -15,6 +15,7 @@ use std::{marker::PhantomData, ptr::NonNull};
 ///
 /// Designed for **blazing fast allocation** of temporary buffers in pipelines, encoders, or servers.
 /// And unlike regular allocators, it doesn’t leave junk behind or call the OS crying.
+#[derive(Clone)]
 pub struct Lake<const SIZE: usize> {
     /// Our "water reservoir" – preallocated and boxed for stable address.
     pub(super) buf: Box<[u8; SIZE]>,
@@ -29,6 +30,14 @@ pub struct Lake<const SIZE: usize> {
 }
 
 impl<const SIZE: usize> Lake<SIZE> {
+    #[inline(always)]
+    pub fn freeze_ref(&mut self) -> &Self {
+        &*self
+    }
+    #[inline(always)]
+    pub fn freeze_ptr(&self) -> *const Self {
+        self as *const Self
+    }
     /// Create a new, pristine lake. Surface like glass, zero offset.
     #[inline(always)]
     pub fn new() -> Self {
@@ -123,11 +132,28 @@ impl<const SIZE: usize> Lake<SIZE> {
         let ptr: *mut [u8; N] = unsafe { self.buf.as_mut_ptr().add(self.offset) as *mut [u8; N] };
         let droplet = Droplet {
             ptr: NonNull::new(ptr)?,
-            offset: self.offset + N,
+            offset: 0,
             lake: self as *mut Self,
-            generation: 0,
+            generation: self.generation,
         };
         self.offset += N;
+        Some(droplet)
+    }
+    #[inline(always)]
+    pub fn alloc_dyn(&mut self, size: usize) -> Option<DropletDyn<SIZE>> {
+        if self.offset + size > SIZE {
+            return None;
+        }
+        let dst: *mut u8 = unsafe { self.buf.as_mut_ptr().add(self.offset) };
+        let lake: *mut dyn LakeMeta = self as *mut Self as *mut dyn LakeMeta;
+        let droplet = DropletDyn {
+            ptr: unsafe { NonNull::new_unchecked(dst) },
+            len: size,
+            offset: self.offset,
+            lake,
+            generation: self.generation,
+        };
+        self.offset += size;
         Some(droplet)
     }
     /// Wipe the lake clean and start a new generation. Fresh waters.

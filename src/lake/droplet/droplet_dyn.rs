@@ -4,6 +4,7 @@ use crate::{
     lake::{droplet::DropletBase, LakeMeta},
 };
 use std::ptr::NonNull;
+use crate::droplet::Droplet;
 
 /// A dynamically sized `Droplet` carved from a `Lake`.
 ///
@@ -28,6 +29,19 @@ pub struct DropletDyn<const SIZE: usize> {
     pub(crate) generation: usize,
 }
 
+impl<const SIZE: usize> Clone for DropletDyn<SIZE>
+{
+    fn clone(&self) -> Self {
+        Self {
+            ptr: self.ptr,
+            len: self.len,
+            offset: self.offset,
+            lake: self.lake,
+            generation: self.generation
+        }
+    }
+}
+
 impl<const SIZE: usize> DropletBase for DropletDyn<SIZE> {
     #[inline(always)]
     fn d_as_ptr(&self) -> *const u8 {
@@ -49,6 +63,12 @@ impl<const SIZE: usize> DropletBase for DropletDyn<SIZE> {
         guard!(self);
         // Safety: ditto
         unsafe { std::slice::from_raw_parts_mut(self.ptr.as_ptr(), self.len) }
+    }
+    fn d_offset_mut(&mut self) -> &mut usize {
+        &mut self.offset
+    }
+    fn d_offset(&self) -> usize {
+        self.offset
     }
 }
 

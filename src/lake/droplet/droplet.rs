@@ -33,6 +33,16 @@ pub struct Droplet<const N: usize, TARGET: LakeMeta> {
 unsafe impl<const N: usize, TARGET: LakeMeta> Send for Droplet<N, TARGET> {}
 unsafe impl<const N: usize, TARGET: LakeMeta> Sync for Droplet<N, TARGET> {}
 
+impl<const N: usize, TARGET: LakeMeta> Clone for Droplet<N, TARGET> {
+    fn clone(&self) -> Self {
+        Self {
+            ptr: self.ptr,
+            offset: self.offset,
+            lake: self.lake,
+            generation: self.generation,
+        }
+    }
+}
 impl<TARGET: LakeMeta, const N: usize> Droplet<N, TARGET> {
     /// Leak the droplet and obtain a `'static` reference.
     /// # Safety: you must guarantee that this will not outlive the Lake.
@@ -62,7 +72,9 @@ impl<TARGET: LakeMeta, const N: usize> Droplet<N, TARGET> {
         let lake: &dyn LakeMeta = unsafe { self.get_lake() };
         lake.generation() == self.generation && lake.offset() >= self.offset
     }
-
+    pub fn generation(&self) -> usize {
+        self.generation
+    }
     #[inline(always)]
     pub fn get_lake_ptr(&self) -> *mut TARGET {
         self.lake
@@ -90,6 +102,14 @@ impl<const N: usize, T: LakeMeta> DropletBase for Droplet<N, T> {
         println!("is_valid = {:?}", self.is_valid());
         guard!(self);
         unsafe { &mut *self.ptr.as_ptr() }
+    }
+
+    fn d_offset_mut(&mut self) -> &mut usize {
+        &mut self.offset
+    }
+
+    fn d_offset(&self) -> usize {
+        self.offset
     }
 }
 

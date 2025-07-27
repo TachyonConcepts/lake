@@ -1,5 +1,6 @@
 #![allow(unsafe_op_in_unsafe_fn)]
 pub mod lake;
+pub mod small_lake;
 
 pub use lake::lake::*;
 pub use lake::lake::lake::Lake;
