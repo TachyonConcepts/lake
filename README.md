@@ -1,7 +1,5 @@
 # Lake
 
-[![Rust](https://github.com/TachyonConcepts/lake/actions/workflows/rust.yml/badge.svg)](https://github.com/TachyonConcepts/lake/actions/workflows/rust.yml)
-
 > A fast, zero-cost, and deeply controllable memory system — not just an allocator, but a memory lake.
 
 **Lake** is a linear memory management system designed for extreme performance, zero-cost abstractions, and full control. Inspired by bump allocators — but not limited by them — Lake offers a rich API for precise and predictable memory handling.
